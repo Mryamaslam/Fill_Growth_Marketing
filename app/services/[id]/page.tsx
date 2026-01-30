@@ -4,6 +4,12 @@ import ServiceDetail from '@/components/ServiceDetail'
 import { services } from '@/data/services'
 import { generateMetadata as genMeta, generateSchemaMarkup } from '@/lib/seo'
 
+export function generateStaticParams() {
+  return services.map((service) => ({
+    id: service.id,
+  }))
+}
+
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const service = services.find((s) => s.id === params.id)
 

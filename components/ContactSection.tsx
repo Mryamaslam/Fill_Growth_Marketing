@@ -2,7 +2,7 @@
 
 import { motion, useInView } from 'framer-motion'
 import { useRef, useState } from 'react'
-import { FiMail, FiPhone, FiMapPin } from 'react-icons/fi'
+import { FiMail, FiPhone, FiMapPin, FiCheck } from 'react-icons/fi'
 import { services } from '@/data/services'
 
 export default function ContactSection() {
