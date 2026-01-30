@@ -1,20 +1,26 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  
+  // Enable static export for GitHub Pages
   output: 'export',
-  distDir: 'docs', // Output to docs folder for GitHub Pages
+  
+  // Configure basePath and assetPrefix for GitHub Pages repository
+  // Repository name: Fill_Growth_Marketing
+  // GitHub Pages URL: https://mryamaslam.github.io/Fill_Growth_Marketing/
   basePath: process.env.NODE_ENV === 'production' ? '/Fill_Growth_Marketing' : '',
   assetPrefix: process.env.NODE_ENV === 'production' ? '/Fill_Growth_Marketing' : '',
+  
+  // Disable image optimization (required for static export)
   images: {
-    unoptimized: true, // Required for static export
-    formats: ['image/avif', 'image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    unoptimized: true,
   },
-  compress: true,
+  
+  // Disable features not supported in static export
+  compress: false, // Compression handled by GitHub Pages
   poweredByHeader: false,
-  generateEtags: true,
-  // Note: Headers are not supported in static export
+  
+  // Note: Headers, rewrites, and redirects are not supported in static export
 }
 
 module.exports = nextConfig
