@@ -2,6 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'export',
+  distDir: 'docs', // Output to docs folder for GitHub Pages
   basePath: process.env.NODE_ENV === 'production' ? '/Fill_Growth_Marketing' : '',
   assetPrefix: process.env.NODE_ENV === 'production' ? '/Fill_Growth_Marketing' : '',
   images: {
