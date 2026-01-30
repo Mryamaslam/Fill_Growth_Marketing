@@ -60,7 +60,10 @@ export default function ContactSection() {
     setErrors({})
 
     try {
-      const response = await fetch('/api/contact', {
+      // For GitHub Pages, API routes don't work. Use a form service like Formspree or your own backend.
+      // For now, this will work in development but needs a form service for production on GitHub Pages.
+      const basePath = process.env.NODE_ENV === 'production' ? '/Fill_Growth_Marketing' : ''
+      const response = await fetch(`${basePath}/api/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -204,7 +204,47 @@ See `.env.example` for all required environment variables.
 
 ## Deployment
 
-### Vercel (Recommended)
+### GitHub Pages
+
+This project is configured for GitHub Pages deployment with automatic builds via GitHub Actions.
+
+**Setup Instructions:**
+
+1. **Enable GitHub Pages in your repository:**
+   - Go to your repository settings
+   - Navigate to "Pages" in the left sidebar
+   - Under "Source", select "GitHub Actions"
+   - Save the settings
+
+2. **Push your code to GitHub:**
+   ```bash
+   git add .
+   git commit -m "Configure for GitHub Pages"
+   git push origin main
+   ```
+
+3. **The GitHub Actions workflow will automatically:**
+   - Build the Next.js static site
+   - Deploy to GitHub Pages
+   - Your site will be available at: `https://mryamaslam.github.io/Fill_Growth_Marketing/`
+
+**Important Notes for GitHub Pages:**
+- ⚠️ **API Routes**: GitHub Pages only serves static files, so API routes (`/api/contact`) will not work. You'll need to:
+  - Use a third-party form service like [Formspree](https://formspree.io/), [FormSubmit](https://formsubmit.co/), or [EmailJS](https://www.emailjs.com/)
+  - Or deploy the API separately to a service like Vercel, Netlify Functions, or Railway
+- The site is configured with basePath `/Fill_Growth_Marketing` for the repository name
+- All images are optimized for static export
+- The `.nojekyll` file prevents GitHub from processing files with Jekyll
+
+**Manual Build (if needed):**
+```bash
+npm run build
+# The static files will be in the 'out' directory
+```
+
+### Vercel (Recommended for Full Features)
+
+For full backend functionality (API routes, server-side features):
 
 1. Push your code to GitHub
 2. Import project in Vercel
