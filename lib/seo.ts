@@ -1,3 +1,5 @@
+import type { Metadata } from 'next'
+
 export interface SEOData {
   title: string
   description: string
@@ -7,7 +9,7 @@ export interface SEOData {
   type?: string
 }
 
-export function generateMetadata(data: SEOData) {
+export function generateMetadata(data: SEOData): Metadata {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://fillgrowthmarketing.com'
   const defaultImage = `${siteUrl}/og-image.jpg`
 
@@ -29,7 +31,7 @@ export function generateMetadata(data: SEOData) {
         },
       ],
       locale: 'en_US',
-      type: data.type || 'website',
+      type: (data.type as 'website' | 'article' | undefined) || 'website',
     },
     twitter: {
       card: 'summary_large_image',
