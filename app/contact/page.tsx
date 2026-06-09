@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import ContactSection from '@/components/ContactSection'
 import Footer from '@/components/Footer'
 
@@ -10,7 +11,9 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <main className="min-h-screen bg-background">
-      <ContactSection />
+      <Suspense fallback={<div className="min-h-screen bg-background" />}>
+        <ContactSection />
+      </Suspense>
       <Footer />
     </main>
   )
