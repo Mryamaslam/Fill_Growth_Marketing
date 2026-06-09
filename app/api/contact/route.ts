@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import connectDB from '@/lib/mongodb'
-import Contact from '@/models/Contact'
 import { sendEmail, generateAdminEmail, generateAutoReplyEmail } from '@/lib/email'
+import { insertLead } from '@/lib/leadsStore'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, email, phone, service, message } = body
+    const { name, email, phone, country, city, service, message } = body
 
     // Server-side validation
     if (!name || !email || !message) {
@@ -25,41 +24,89 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Connect to database
-    await connectDB()
+    // Save to file-based storage for admin leads panel (PRIMARY - always save first)
+    let leadSaved = false
+    try {
+      const packageId = body.package || undefined
+      const packageInfo =
+        body.packageInfo ||
+        (packageId ? `Interested in package: ${packageId.toString().toUpperCase()}` : null)
 
-    // Save to database
-    const contact = new Contact({
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      phone: phone?.trim(),
-      service: service?.trim(),
-      message: message.trim(),
-    })
-
-    await contact.save()
-
-    // Send email to admin
-    const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER
-    if (adminEmail) {
-      await sendEmail({
-        to: adminEmail,
-        subject: `New Contact Form Submission from ${name}`,
-        html: generateAdminEmail({ name, email, phone, service, message }),
+      insertLead({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        phone: phone?.trim(),
+        country: country?.trim(),
+        city: city?.trim(),
+        service: service?.trim(),
+        message: message.trim(),
+        source: body.source || 'contact',
+        packageId,
+        packageInfo,
       })
+      leadSaved = true
+    } catch (e) {
+      console.error('Failed to insert lead:', e)
+      // If lead saving fails, return error
+      return NextResponse.json(
+        { error: 'Failed to save your message. Please try again later.' },
+        { status: 500 }
+      )
     }
 
-    // Send auto-reply to user
-    await sendEmail({
-      to: email,
-      subject: 'Thank You for Contacting Fill Growth Marketing',
-      html: generateAutoReplyEmail(name),
-    })
-
-    return NextResponse.json(
-      { message: 'Contact form submitted successfully', id: contact._id },
+    // Return success immediately after saving lead (FAST RESPONSE)
+    // Emails will be sent in background (non-blocking)
+    const response = NextResponse.json(
+      { 
+        message: 'Contact form submitted successfully',
+        leadSaved: true 
+      }, 
       { status: 201 }
     )
+
+    // Send emails in background (non-blocking - don't wait for them)
+    // This makes the API response much faster
+    const sendEmailsAsync = async () => {
+      // Send email to admin (OPTIONAL - don't block if it fails)
+      const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER
+      if (adminEmail && process.env.SMTP_USER && process.env.SMTP_PASS) {
+        try {
+          const adminEmailResult = await sendEmail({
+            to: adminEmail,
+            subject: `New Contact Form Submission from ${name}`,
+            html: generateAdminEmail({ name, email, phone, country, city, service, message }),
+          })
+          if (!adminEmailResult.success) {
+            console.warn('Admin email failed to send, but lead was saved:', adminEmailResult.error)
+          }
+        } catch (emailError) {
+          console.warn('Admin email error (lead was saved):', emailError)
+        }
+      }
+
+      // Send auto-reply to user (OPTIONAL - don't block if it fails)
+      if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+        try {
+          const autoReplyResult = await sendEmail({
+            to: email,
+            subject: 'Thank You for Contacting Fill Growth Marketing',
+            html: generateAutoReplyEmail(name),
+          })
+          if (!autoReplyResult.success) {
+            console.warn('Auto-reply email failed to send, but lead was saved:', autoReplyResult.error)
+          }
+        } catch (emailError) {
+          console.warn('Auto-reply email error (lead was saved):', emailError)
+        }
+      }
+    }
+
+    // Start email sending in background (don't await)
+    sendEmailsAsync().catch((err) => {
+      console.warn('Background email sending error (lead was saved):', err)
+    })
+
+    return response
   } catch (error: any) {
     console.error('Contact form error:', error)
     
@@ -81,21 +128,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { error: 'Failed to submit contact form. Please try again later.' },
-      { status: 500 }
-    )
-  }
-}
-
-// GET endpoint to retrieve contacts (for admin dashboard - add authentication in production)
-export async function GET() {
-  try {
-    await connectDB()
-    const contacts = await Contact.find().sort({ createdAt: -1 }).limit(100)
-    return NextResponse.json({ contacts }, { status: 200 })
-  } catch (error) {
-    console.error('Error fetching contacts:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch contacts' },
       { status: 500 }
     )
   }

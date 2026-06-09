@@ -1,51 +1,67 @@
 'use client'
 
 import { motion, useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
+import Link from 'next/link'
 import { FiCheck } from 'react-icons/fi'
+import { detectCountry, formatPrice, basePrices, countryToCurrency } from '@/lib/currency'
 
 interface PackageFeature {
   text: string
+  originalText?: string
 }
 
 interface Package {
   id: string
   name: string
+  basePrice: number
   badge?: string
   features: PackageFeature[]
   popular?: boolean
 }
 
-const packages: Package[] = [
+const basePackages: Package[] = [
   {
     id: 'basic',
-    name: 'Basic Package',
+    name: 'BASIC',
+    basePrice: basePrices.basic,
     features: [
-      { text: 'Social media posts' },
-      { text: 'Basic graphics' },
-      { text: 'Monthly reporting' },
+      { text: '3 Platforms' },
+      { text: '2 Post Per Week' },
+      { text: 'Content Calendar' },
+      { text: 'Monthly Reporting' },
+      { text: 'Hashtag Optimization' },
     ],
   },
   {
-    id: 'premium',
-    name: 'Premium Package',
+    id: 'standard',
+    name: 'STANDARD',
+    basePrice: basePrices.standard,
     badge: 'Most Popular',
     features: [
-      { text: 'Social media management' },
-      { text: 'Meta ads' },
-      { text: 'Content strategy' },
-      { text: 'Lead generation' },
+      { text: '3 Platforms' },
+      { text: '4 Post Per Week' },
+      { text: 'Content Calendar' },
+      { text: 'Monthly Reporting' },
+      { text: 'Hashtag Optimization' },
+      { text: 'Engagement Follower Growth' },
+      { text: 'Boost Post', originalText: 'Boost Post Rs. 10k' },
     ],
     popular: true,
   },
   {
-    id: 'diamond',
-    name: 'Diamond Package',
+    id: 'premium',
+    name: 'PREMIUM',
+    basePrice: basePrices.premium,
     features: [
-      { text: 'Full digital marketing' },
-      { text: 'Ads + SEO + Funnels' },
-      { text: 'Dedicated manager' },
-      { text: 'Weekly reporting' },
+      { text: '3 Platforms' },
+      { text: '6 Post Per Week' },
+      { text: 'Content Calendar' },
+      { text: 'Monthly Reporting' },
+      { text: 'Hashtag Optimization' },
+      { text: 'Engagement Follower Growth' },
+      { text: 'Boost Post', originalText: 'Boost Post Rs. 20k' },
+      { text: 'Dedicated Ads Manager' },
     ],
   },
 ]
@@ -53,6 +69,42 @@ const packages: Package[] = [
 export default function PackagesSection() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
+  const [country, setCountry] = useState<string>('Pakistan')
+  const [packages, setPackages] = useState<Package[]>(basePackages)
+
+  useEffect(() => {
+    // Detect country on mount
+    const detectedCountry = detectCountry()
+    setCountry(detectedCountry)
+    
+    // Update packages with converted prices
+    const updatedPackages = basePackages.map((pkg) => {
+      const updatedFeatures = pkg.features.map((feature) => {
+        if (feature.originalText) {
+          // Convert boost post prices
+          const boostAmount = pkg.id === 'standard' ? basePrices.boostPost10k : basePrices.boostPost20k
+          const currency = countryToCurrency[detectedCountry] || countryToCurrency['Pakistan']
+          const convertedBoost = boostAmount * currency.rateToPKR
+          const boostFormatted = convertedBoost >= 1000 
+            ? `${currency.symbol}${(convertedBoost / 1000).toFixed(1)}k`
+            : `${currency.symbol}${Math.round(convertedBoost).toLocaleString()}`
+          
+          return {
+            ...feature,
+            text: `Boost Post ${boostFormatted}`,
+          }
+        }
+        return feature
+      })
+      
+      return {
+        ...pkg,
+        features: updatedFeatures,
+      }
+    })
+    
+    setPackages(updatedPackages)
+  }, [])
 
   return (
     <section ref={ref} className="py-20 sm:py-24 lg:py-32 bg-background">
@@ -81,6 +133,7 @@ export default function PackagesSection() {
               pkg={pkg}
               index={index}
               isInView={isInView}
+              country={country}
             />
           ))}
         </div>
@@ -93,10 +146,12 @@ function PackageCard({
   pkg,
   index,
   isInView,
+  country,
 }: {
   pkg: Package
   index: number
   isInView: boolean
+  country: string
 }) {
   const isPopular = pkg.popular
 
@@ -147,7 +202,7 @@ function PackageCard({
         whileHover={{ y: -8, scale: isPopular ? 1.08 : 1.02 }}
         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       >
-        {/* Package Name */}
+        {/* Package Name & Price */}
         <div className="text-center mb-6">
           <h3
             className={`text-2xl sm:text-3xl font-bold mb-2 ${
@@ -156,6 +211,9 @@ function PackageCard({
           >
             {pkg.name}
           </h3>
+          <p className="text-xl sm:text-2xl font-semibold text-secondary mb-2">
+            {formatPrice(pkg.basePrice, country)}
+          </p>
           {isPopular && (
             <motion.div
               className="w-16 h-1 bg-gradient-accent mx-auto rounded-full"
@@ -176,27 +234,29 @@ function PackageCard({
               animate={isInView ? { opacity: 1, x: 0 } : {}}
               transition={{ delay: index * 0.2 + 0.1 * (idx + 1), duration: 0.4 }}
             >
-              <span className="text-secondary mr-3 mt-1">✓</span>
+              <FiCheck className="text-secondary mr-3 mt-1 flex-shrink-0" />
               <span className="text-text-light">{feature.text}</span>
             </motion.li>
           ))}
         </ul>
 
         {/* CTA Button */}
-        <motion.button
-          className={`w-full py-4 px-6 rounded-lg font-semibold text-white transition-all duration-300 ${
-            isPopular
-              ? 'bg-gradient-accent shadow-lg hover:shadow-xl'
-              : 'bg-gradient-blue hover:bg-gradient-to-r hover:from-secondary hover:to-blue-600'
-          }`}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: index * 0.2 + 0.6, duration: 0.4 }}
-        >
-          Get This Package
-        </motion.button>
+        <Link href={`/contact?package=${pkg.id}`}>
+          <motion.button
+            className={`w-full py-4 px-6 rounded-lg font-semibold text-white transition-all duration-300 ${
+              isPopular
+                ? 'bg-gradient-accent shadow-lg hover:shadow-xl'
+                : 'bg-gradient-blue hover:bg-gradient-to-r hover:from-secondary hover:to-blue-600'
+            }`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: index * 0.2 + 0.6, duration: 0.4 }}
+          >
+            Get This Package
+          </motion.button>
+        </Link>
 
         {/* Additional Glow for Popular on Hover */}
         {isPopular && (

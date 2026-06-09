@@ -55,37 +55,6 @@ export const teamMembers: TeamMember[] = [
     },
   },
   {
-    id: 'ahmed-ali',
-    name: 'Ahmed Ali',
-    role: 'Video Editor',
-    photo: '👨‍💻',
-    bio: 'Ahmed is an expert video editor specializing in YouTube content and social media videos. With a keen eye for storytelling and pacing, he transforms raw footage into engaging narratives.',
-    skills: ['Video Editing', 'Color Grading', 'Motion Graphics', 'Sound Design', 'Post-Production'],
-    tools: ['Premiere Pro', 'After Effects', 'DaVinci Resolve', 'Final Cut Pro', 'Audition'],
-    experience: '6+ years editing videos for YouTube creators, brands, and agencies. Produced over 500+ videos with millions of combined views.',
-    portfolio: [
-      {
-        title: 'YouTube Channel Rebrand',
-        description: 'Complete video rebrand for a 1M+ subscriber YouTube channel.',
-        image: '🎬',
-      },
-      {
-        title: 'Product Launch Video',
-        description: 'High-energy product launch video that generated 2M+ views.',
-        image: '🚀',
-      },
-      {
-        title: 'Brand Documentary Series',
-        description: '3-part documentary series showcasing brand story and values.',
-        image: '📹',
-      },
-    ],
-    social: {
-      linkedin: '#',
-      behance: '#',
-    },
-  },
-  {
     id: 'hassan-malik',
     name: 'Hassan Malik',
     role: 'Web Developer',
@@ -140,6 +109,68 @@ export const teamMembers: TeamMember[] = [
         title: 'Lead Generation System',
         description: 'Built automated lead generation system generating 500+ qualified leads monthly.',
         image: '📊',
+      },
+    ],
+    social: {
+      linkedin: '#',
+      twitter: '#',
+    },
+  },
+  {
+    id: 'shahzaman',
+    name: 'Shahzaman',
+    role: 'SEO Specialist',
+    photo: '👨‍💻',
+    bio: 'Shahzaman is an expert SEO specialist with deep expertise in WordPress SEO and Shopify SEO. He combines technical SEO knowledge with platform-specific optimizations to deliver exceptional results for content management systems and e-commerce platforms.',
+    skills: ['SEO', 'WordPress SEO', 'Shopify SEO', 'Technical SEO', 'On-Page Optimization', 'Content Strategy', 'Link Building'],
+    tools: ['WordPress', 'Shopify', 'Yoast SEO', 'Rank Math', 'Google Analytics', 'Google Search Console', 'Ahrefs', 'SEMrush', 'Screaming Frog'],
+    experience: '8+ years specializing in SEO for WordPress and Shopify platforms. Optimized 200+ websites, achieving average organic traffic growth of 250% within 12 months.',
+    portfolio: [
+      {
+        title: 'WordPress SEO Optimization',
+        description: 'Increased organic traffic by 400% for a WordPress blog through comprehensive technical SEO and content optimization.',
+        image: '📈',
+      },
+      {
+        title: 'Shopify E-commerce SEO',
+        description: 'Improved Shopify store rankings, resulting in 300% increase in organic product sales and 5x ROI.',
+        image: '🛒',
+      },
+      {
+        title: 'Multi-Platform SEO Strategy',
+        description: 'Developed and executed SEO strategy across WordPress and Shopify platforms, achieving top 3 rankings for 50+ target keywords.',
+        image: '🎯',
+      },
+    ],
+    social: {
+      linkedin: '#',
+      github: '#',
+    },
+  },
+  {
+    id: 'ahmmad-raza',
+    name: 'Ahmmad Raza',
+    role: 'Digital Marketing Expert',
+    photo: '👨‍💼',
+    bio: 'Ahmmad Raza is a seasoned digital marketing expert specializing in performance marketing, paid advertising, and growth strategies. He builds data-driven campaigns that maximize ROI and scale brands across multiple channels.',
+    skills: ['Performance Marketing', 'Google Ads', 'Meta Ads', 'Social Media Marketing', 'Email Marketing', 'Marketing Strategy', 'Conversion Optimization'],
+    tools: ['Google Ads', 'Meta Ads Manager', 'Google Analytics', 'HubSpot', 'Mailchimp', 'SEMrush', 'Canva'],
+    experience: '10+ years of experience driving digital growth for brands across e-commerce, SaaS, and local businesses. Managed multi-million dollar ad budgets with consistent, measurable results.',
+    portfolio: [
+      {
+        title: 'Multi-Channel Growth Campaign',
+        description: 'Scaled a D2C brand from $50K to $500K monthly revenue through integrated paid and organic strategies.',
+        image: '🚀',
+      },
+      {
+        title: 'Paid Advertising Optimization',
+        description: 'Achieved 6x ROAS across Google and Meta Ads for an e-commerce client with optimized funnels.',
+        image: '🎯',
+      },
+      {
+        title: 'Brand Awareness Campaign',
+        description: 'Grew brand social following by 250K and boosted engagement rate by 180% in 6 months.',
+        image: '📣',
       },
     ],
     social: {

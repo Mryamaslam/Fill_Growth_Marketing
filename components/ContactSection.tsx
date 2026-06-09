@@ -1,20 +1,54 @@
 'use client'
 
 import { motion, useInView } from 'framer-motion'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { FiMail, FiPhone, FiMapPin, FiCheck } from 'react-icons/fi'
 import { services } from '@/data/services'
+
+const packageNames: Record<string, string> = {
+  basic: 'BASIC Package (Rs. 20k/month)',
+  standard: 'STANDARD Package (Rs. 40k/month)',
+  premium: 'PREMIUM Package (Rs. 60k/month)',
+}
+
+const countries = [
+  'Pakistan', 'India', 'Bangladesh', 'Sri Lanka', 'Nepal',
+  'United States', 'United Kingdom', 'Canada', 'Australia', 'Germany', 'France', 'Italy', 'Spain',
+  'Netherlands', 'Belgium', 'Switzerland', 'Austria', 'Sweden', 'Norway', 'Denmark', 'Finland',
+  'Poland', 'Portugal', 'Ireland', 'Greece', 'Czech Republic', 'Romania', 'Hungary', 'Bulgaria',
+  'China', 'Japan', 'South Korea', 'Singapore', 'Malaysia', 'Thailand', 'Indonesia', 'Philippines',
+  'Vietnam', 'United Arab Emirates', 'Saudi Arabia', 'Qatar', 'Kuwait', 'Bahrain', 'Oman', 'Egypt',
+  'South Africa', 'Nigeria', 'Kenya', 'Brazil', 'Mexico', 'Argentina', 'Chile', 'Colombia', 'Peru',
+  'New Zealand', 'Other'
+]
 
 export default function ContactSection() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
+  const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
+    country: '',
+    city: '',
     service: '',
     message: '',
+    package: '',
   })
+
+  useEffect(() => {
+    const packageParam = searchParams.get('package')
+    if (packageParam && packageNames[packageParam]) {
+      const packageName = packageNames[packageParam]
+      setFormData((prev) => ({
+        ...prev,
+        package: packageParam,
+        message: `I'm interested in the ${packageName}. Please contact me with more details.`,
+      }))
+    }
+  }, [searchParams])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
@@ -36,6 +70,16 @@ export default function ContactSection() {
 
     if (formData.phone && !/^[\d\s\-\+\(\)]+$/.test(formData.phone)) {
       newErrors.phone = 'Please enter a valid phone number'
+    }
+
+    if (!formData.country.trim()) {
+      newErrors.country = 'Country is required'
+    }
+
+    if (!formData.city.trim()) {
+      newErrors.city = 'City is required'
+    } else if (formData.city.trim().length < 2) {
+      newErrors.city = 'City must be at least 2 characters'
     }
 
     if (!formData.message.trim()) {
@@ -60,17 +104,27 @@ export default function ContactSection() {
     setErrors({})
 
     try {
-      // For GitHub Pages, API routes don't work. Use a form service like Formspree or your own backend.
-      // For now, this will work in development but needs a form service for production on GitHub Pages.
       const basePath = process.env.NODE_ENV === 'production' ? '/Fill_Growth_Marketing' : ''
+      // Include package info in the submission
+      const submissionData = {
+        ...formData,
+        packageInfo: formData.package ? packageNames[formData.package] : null,
+      }
+      
+      // Add timeout for faster user feedback (10 seconds max)
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000)
+      
       const response = await fetch(`${basePath}/api/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submissionData),
+        signal: controller.signal,
       })
 
+      clearTimeout(timeoutId)
       const data = await response.json()
 
       if (!response.ok) {
@@ -78,13 +132,18 @@ export default function ContactSection() {
       }
 
       setSubmitStatus('success')
-      setFormData({ name: '', email: '', phone: '', service: '', message: '' })
+      setFormData({ name: '', email: '', phone: '', country: '', city: '', service: '', message: '', package: '' })
       
       // Reset success message after 5 seconds
       setTimeout(() => setSubmitStatus('idle'), 5000)
     } catch (error: any) {
-      setSubmitStatus('error')
-      setErrors({ submit: error.message || 'Failed to submit form. Please try again.' })
+      if (error.name === 'AbortError') {
+        setSubmitStatus('error')
+        setErrors({ submit: 'Request timed out. Please check your connection and try again.' })
+      } else {
+        setSubmitStatus('error')
+        setErrors({ submit: error.message || 'Failed to submit form. Please try again.' })
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -202,11 +261,81 @@ export default function ContactSection() {
                 )}
               </motion.div>
 
-              {/* Service Selection */}
+              {/* Country */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: 0.55 }}
+              >
+                <label htmlFor="country" className="block text-sm font-medium text-primary mb-2">
+                  Country *
+                </label>
+                <select
+                  id="country"
+                  name="country"
+                  required
+                  value={formData.country}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent transition-all ${
+                    errors.country ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                >
+                  <option value="">Select your country</option>
+                  {countries.map((country) => (
+                    <option key={country} value={country}>
+                      {country}
+                    </option>
+                  ))}
+                </select>
+                {errors.country && (
+                  <p className="mt-1 text-sm text-red-500">{errors.country}</p>
+                )}
+              </motion.div>
+
+              {/* City */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 0.6 }}
+              >
+                <label htmlFor="city" className="block text-sm font-medium text-primary mb-2">
+                  City *
+                </label>
+                <input
+                  type="text"
+                  id="city"
+                  name="city"
+                  required
+                  value={formData.city}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent transition-all ${
+                    errors.city ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Your city"
+                />
+                {errors.city && (
+                  <p className="mt-1 text-sm text-red-500">{errors.city}</p>
+                )}
+              </motion.div>
+
+              {/* Package Selection Indicator */}
+              {formData.package && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ delay: 0.65 }}
+                  className="p-4 bg-gradient-accent bg-opacity-10 border border-secondary rounded-lg"
+                >
+                  <p className="text-sm font-medium text-primary mb-1">Selected Package:</p>
+                  <p className="text-secondary font-semibold">{packageNames[formData.package]}</p>
+                </motion.div>
+              )}
+
+              {/* Service Selection */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: 0.7 }}
               >
                 <label htmlFor="service" className="block text-sm font-medium text-primary mb-2">
                   Service
@@ -231,7 +360,7 @@ export default function ContactSection() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: 0.7 }}
+                transition={{ delay: 0.75 }}
               >
                 <label htmlFor="message" className="block text-sm font-medium text-primary mb-2">
                   Message *
@@ -278,14 +407,24 @@ export default function ContactSection() {
               <motion.button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full px-8 py-4 bg-gradient-accent text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-8 py-4 bg-gradient-accent text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
                 whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
                 whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: 0.8 }}
+                transition={{ delay: 0.85 }}
               >
-                {isSubmitting ? 'Sending...' : 'Send Message'}
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Sending...
+                  </span>
+                ) : (
+                  'Send Message'
+                )}
               </motion.button>
             </form>
           </motion.div>

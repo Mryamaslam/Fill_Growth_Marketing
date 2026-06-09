@@ -12,6 +12,8 @@ export default function ContactFormSection() {
     name: '',
     email: '',
     phone: '',
+    country: '',
+    city: '',
     service: '',
     message: '',
   })
@@ -38,6 +40,16 @@ export default function ContactFormSection() {
       newErrors.phone = 'Please enter a valid phone number'
     }
 
+    if (!formData.country.trim()) {
+      newErrors.country = 'Country is required'
+    }
+
+    if (!formData.city.trim()) {
+      newErrors.city = 'City is required'
+    } else if (formData.city.trim().length < 2) {
+      newErrors.city = 'City must be at least 2 characters'
+    }
+
     if (!formData.message.trim()) {
       newErrors.message = 'Message is required'
     } else if (formData.message.trim().length < 10) {
@@ -60,17 +72,22 @@ export default function ContactFormSection() {
     setErrors({})
 
     try {
-      // For GitHub Pages, API routes don't work. Use a form service like Formspree or your own backend.
-      // For now, this will work in development but needs a form service for production on GitHub Pages.
       const basePath = process.env.NODE_ENV === 'production' ? '/Fill_Growth_Marketing' : ''
+      
+      // Add timeout for faster user feedback (10 seconds max)
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000)
+      
       const response = await fetch(`${basePath}/api/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
+        signal: controller.signal,
       })
 
+      clearTimeout(timeoutId)
       const data = await response.json()
 
       if (!response.ok) {
@@ -78,12 +95,25 @@ export default function ContactFormSection() {
       }
 
       setSubmitStatus('success')
-      setFormData({ name: '', email: '', phone: '', service: '', message: '' })
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        country: '',
+        city: '',
+        service: '',
+        message: '',
+      })
       
       setTimeout(() => setSubmitStatus('idle'), 5000)
     } catch (error: any) {
-      setSubmitStatus('error')
-      setErrors({ submit: error.message || 'Failed to submit form. Please try again.' })
+      if (error.name === 'AbortError') {
+        setSubmitStatus('error')
+        setErrors({ submit: 'Request timed out. Please check your connection and try again.' })
+      } else {
+        setSubmitStatus('error')
+        setErrors({ submit: error.message || 'Failed to submit form. Please try again.' })
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -201,11 +231,65 @@ export default function ContactFormSection() {
                 )}
               </motion.div>
 
-              {/* Service Selection */}
+              {/* Country */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: 0.55 }}
+              >
+                <label htmlFor="home-country" className="block text-sm font-medium text-primary mb-2">
+                  Country *
+                </label>
+                <input
+                  type="text"
+                  id="home-country"
+                  name="country"
+                  required
+                  value={formData.country}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent transition-all ${
+                    errors.country ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Your country"
+                />
+                {errors.country && (
+                  <p className="mt-1 text-sm text-red-500">{errors.country}</p>
+                )}
+              </motion.div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* City */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 0.6 }}
+              >
+                <label htmlFor="home-city" className="block text-sm font-medium text-primary mb-2">
+                  City *
+                </label>
+                <input
+                  type="text"
+                  id="home-city"
+                  name="city"
+                  required
+                  value={formData.city}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent transition-all ${
+                    errors.city ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Your city"
+                />
+                {errors.city && (
+                  <p className="mt-1 text-sm text-red-500">{errors.city}</p>
+                )}
+              </motion.div>
+
+              {/* Service Selection */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: 0.65 }}
               >
                 <label htmlFor="home-service" className="block text-sm font-medium text-primary mb-2">
                   Service
@@ -228,11 +312,11 @@ export default function ContactFormSection() {
             </div>
 
             {/* Message */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.7 }}
-            >
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ delay: 0.7 }}
+              >
               <label htmlFor="home-message" className="block text-sm font-medium text-primary mb-2">
                 Message *
               </label>
@@ -278,14 +362,24 @@ export default function ContactFormSection() {
             <motion.button
               type="submit"
               disabled={isSubmitting}
-              className="w-full px-8 py-4 bg-gradient-accent text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-8 py-4 bg-gradient-accent text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
               whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
               whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ delay: 0.8 }}
             >
-              {isSubmitting ? 'Sending...' : 'Send Message'}
+              {isSubmitting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Sending...
+                </span>
+              ) : (
+                'Send Message'
+              )}
             </motion.button>
           </form>
         </motion.div>

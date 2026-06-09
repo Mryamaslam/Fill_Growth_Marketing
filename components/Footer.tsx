@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import Image from 'next/image'
 import { 
   FiLinkedin, 
   FiFacebook, 
@@ -48,7 +49,16 @@ export default function Footer() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h3 className="text-2xl font-bold mb-4">Fill Growth Marketing</h3>
+            <div className="flex items-center gap-3 mb-4">
+              <Image
+                src="/logo.png"
+                alt="Fill Growth Marketing logo"
+                width={48}
+                height={48}
+                className="h-12 w-12 object-contain"
+              />
+              <h3 className="text-2xl font-bold">Fill Growth Marketing</h3>
+            </div>
             <p className="text-gray-300 mb-4 leading-relaxed">
               We Scale Brands with Strategy, Content & Performance
             </p>

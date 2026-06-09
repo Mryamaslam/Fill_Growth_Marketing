@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import TeamSection from '@/components/TeamSection'
+import InternsSection from '@/components/InternsSection'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
@@ -11,6 +12,7 @@ export default function TeamPage() {
   return (
     <main className="min-h-screen bg-background">
       <TeamSection />
+      <InternsSection />
       <Footer />
     </main>
   )

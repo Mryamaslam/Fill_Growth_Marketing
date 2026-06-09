@@ -28,6 +28,12 @@ yarn-error.log*
 .env*.local
 .env
 
+# local data / lead submissions (contains PII)
+leads.json
+*.db
+*.sqlite
+*.sqlite3
+
 # vercel
 .vercel
 

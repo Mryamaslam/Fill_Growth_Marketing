@@ -4,6 +4,8 @@ export interface IContact {
   name: string
   email: string
   phone?: string
+  country?: string
+  city?: string
   service?: string
   message: string
   createdAt: Date
@@ -24,6 +26,14 @@ const ContactSchema = new Schema<IContact>(
       match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email'],
     },
     phone: {
+      type: String,
+      trim: true,
+    },
+    country: {
+      type: String,
+      trim: true,
+    },
+    city: {
       type: String,
       trim: true,
     },

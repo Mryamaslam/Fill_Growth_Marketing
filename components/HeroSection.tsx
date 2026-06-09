@@ -6,6 +6,11 @@ import Link from 'next/link'
 
 export default function HeroSection() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -49,7 +54,7 @@ export default function HeroSection() {
 
       {/* Subtle Particles Effect */}
       <div className="absolute inset-0">
-        {typeof window !== 'undefined' && [...Array(20)].map((_, i) => (
+        {mounted && [...Array(20)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-1 h-1 bg-accent-cyan rounded-full"

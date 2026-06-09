@@ -35,6 +35,8 @@ export function generateAdminEmail(data: {
   name: string
   email: string
   phone?: string
+  country?: string
+  city?: string
   service?: string
   message: string
 }) {
@@ -70,6 +72,18 @@ export function generateAdminEmail(data: {
             <div class="field">
               <span class="label">Phone:</span>
               <span class="value">${data.phone}</span>
+            </div>
+            ` : ''}
+            ${data.country ? `
+            <div class="field">
+              <span class="label">Country:</span>
+              <span class="value">${data.country}</span>
+            </div>
+            ` : ''}
+            ${data.city ? `
+            <div class="field">
+              <span class="label">City:</span>
+              <span class="value">${data.city}</span>
             </div>
             ` : ''}
             ${data.service ? `

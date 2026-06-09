@@ -15,56 +15,6 @@ export interface Service {
 
 export const services: Service[] = [
   {
-    id: 'youtube-video-editing',
-    name: 'YouTube Video Editing',
-    icon: '🎬',
-    description: 'Professional video editing services for YouTube content creators',
-    fullDescription: 'Transform your raw footage into engaging YouTube videos that captivate your audience. Our expert video editors create polished, professional content optimized for YouTube\'s algorithm and viewer engagement.',
-    benefits: [
-      'Increased viewer engagement and watch time',
-      'Professional quality that builds credibility',
-      'Optimized for YouTube algorithm',
-      'Faster turnaround times',
-      'Consistent brand style across all videos',
-      'Higher subscriber conversion rates',
-    ],
-    tools: [
-      'Adobe Premiere Pro',
-      'Final Cut Pro',
-      'DaVinci Resolve',
-      'After Effects',
-      'Motion Graphics',
-      'Color Grading Tools',
-    ],
-    process: [
-      {
-        step: 1,
-        title: 'Consultation & Planning',
-        description: 'We discuss your video goals, style preferences, and brand guidelines to create a customized editing plan.',
-      },
-      {
-        step: 2,
-        title: 'Raw Footage Review',
-        description: 'Our team reviews your raw footage and identifies the best moments to highlight in the final edit.',
-      },
-      {
-        step: 3,
-        title: 'Editing & Enhancement',
-        description: 'We edit your video with professional transitions, color grading, sound design, and motion graphics.',
-      },
-      {
-        step: 4,
-        title: 'Review & Revisions',
-        description: 'You review the first draft and request any changes. We refine until it\'s perfect.',
-      },
-      {
-        step: 5,
-        title: 'Final Delivery',
-        description: 'Receive your polished video in the optimal format for YouTube upload, ready to publish.',
-      },
-    ],
-  },
-  {
     id: 'graphic-designing',
     name: 'Graphic Designing',
     icon: '🎨',
@@ -269,7 +219,7 @@ export const services: Service[] = [
     name: 'SEO',
     icon: '🔍',
     description: 'Search engine optimization to boost your online visibility',
-    fullDescription: 'Improve your search engine rankings and organic traffic with our comprehensive SEO services. We conduct thorough keyword research, optimize your website content, and build quality backlinks to help you rank higher on Google and other search engines.',
+    fullDescription: 'Improve your search engine rankings and organic traffic with our comprehensive SEO services. We conduct thorough keyword research, optimize your website content, and build quality backlinks to help you rank higher on Google and other search engines. Our team specializes in WordPress SEO and Shopify SEO, ensuring your CMS-powered websites are fully optimized for search engines with proper technical SEO, schema markup, and platform-specific optimizations.',
     benefits: [
       'Higher search engine rankings',
       'Increased organic traffic',
@@ -277,6 +227,8 @@ export const services: Service[] = [
       'Long-term sustainable growth',
       'Higher quality leads',
       'Improved user experience',
+      'WordPress SEO optimization',
+      'Shopify SEO optimization',
     ],
     tools: [
       'Google Analytics',
@@ -285,12 +237,17 @@ export const services: Service[] = [
       'SEMrush',
       'Moz',
       'Screaming Frog',
+      'WordPress',
+      'Shopify',
+      'Yoast SEO',
+      'Rank Math',
+      'Shopify SEO Apps',
     ],
     process: [
       {
         step: 1,
         title: 'SEO Audit',
-        description: 'Comprehensive analysis of your website\'s current SEO performance, identifying opportunities and issues.',
+        description: 'Comprehensive analysis of your website\'s current SEO performance, identifying opportunities and issues. For WordPress and Shopify sites, we perform platform-specific audits including plugin/app configurations, theme optimization, and technical SEO checks.',
       },
       {
         step: 2,
@@ -300,17 +257,22 @@ export const services: Service[] = [
       {
         step: 3,
         title: 'On-Page Optimization',
-        description: 'Optimize website content, meta tags, headings, and structure for search engines and users.',
+        description: 'Optimize website content, meta tags, headings, and structure for search engines and users. For WordPress sites, we configure SEO plugins (Yoast, Rank Math) and optimize themes. For Shopify stores, we optimize product pages, collections, and implement structured data.',
       },
       {
         step: 4,
+        title: 'Platform-Specific Optimization',
+        description: 'WordPress SEO: Optimize permalinks, install and configure SEO plugins, optimize database, implement caching, and ensure mobile responsiveness. Shopify SEO: Optimize product descriptions, meta fields, URL structure, implement schema markup, optimize images, and configure Shopify SEO apps.',
+      },
+      {
+        step: 5,
         title: 'Link Building',
         description: 'Build high-quality backlinks from authoritative websites to boost your domain authority.',
       },
       {
-        step: 5,
+        step: 6,
         title: 'Monitoring & Reporting',
-        description: 'Track rankings, traffic, and conversions with regular reports and continuous optimization.',
+        description: 'Track rankings, traffic, and conversions with regular reports and continuous optimization. Monitor WordPress/Shopify specific metrics and performance indicators.',
       },
     ],
   },

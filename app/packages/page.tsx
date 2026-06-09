@@ -4,7 +4,7 @@ import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
   title: 'Packages - Fill Growth Marketing',
-  description: 'Choose from our Basic, Premium, or Diamond packages. Select the perfect plan to scale your brand\'s growth.',
+  description: 'Choose from our Basic, Standard, or Premium packages. Select the perfect plan to scale your brand\'s growth.',
 }
 
 export default function PackagesPage() {
