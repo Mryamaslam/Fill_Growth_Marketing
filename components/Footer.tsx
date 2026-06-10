@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
+import { withBasePath } from '@/lib/basePath'
 import { 
   FiLinkedin, 
   FiFacebook, 
@@ -51,7 +52,7 @@ export default function Footer() {
           >
             <div className="flex items-center gap-3 mb-4">
               <Image
-                src="/logo.png"
+                src={withBasePath('/logo.png')}
                 alt="Fill Growth Marketing logo"
                 width={48}
                 height={48}

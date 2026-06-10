@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { withBasePath } from '@/lib/basePath'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -47,7 +48,7 @@ export default function Navbar() {
               whileTap={{ scale: 0.95 }}
             >
               <Image
-                src="/logo.png"
+                src={withBasePath('/logo.png')}
                 alt="Fill Growth Marketing logo"
                 width={44}
                 height={44}

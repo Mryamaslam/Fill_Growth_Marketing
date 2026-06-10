@@ -3,6 +3,7 @@
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import Image from 'next/image'
+import { withBasePath } from '@/lib/basePath'
 
 export default function MissionSection() {
   const ref = useRef(null)
@@ -22,7 +23,7 @@ export default function MissionSection() {
             <div className="relative overflow-hidden rounded-3xl shadow-2xl">
               <div className="relative aspect-[4/3]">
                 <Image
-                  src="/images/mission.png"
+                  src={withBasePath('/images/mission.png')}
                   alt="Team collaborating on growth strategy at a laptop"
                   fill
                   priority

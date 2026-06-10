@@ -4,6 +4,7 @@ import { motion, useInView } from 'framer-motion'
 import Image from 'next/image'
 import { useRef, useState } from 'react'
 import { interns, type Intern } from '@/data/interns'
+import { withBasePath } from '@/lib/basePath'
 
 function getInitials(name: string) {
   return name
@@ -27,7 +28,7 @@ function InternPhoto({ intern }: { intern: Intern }) {
 
   return (
     <Image
-      src={intern.photo}
+      src={withBasePath(intern.photo)}
       alt={intern.name}
       fill
       className="object-cover"
