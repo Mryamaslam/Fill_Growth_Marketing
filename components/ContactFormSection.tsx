@@ -4,6 +4,7 @@ import { motion, useInView } from 'framer-motion'
 import { useRef, useState } from 'react'
 import { FiCheck } from 'react-icons/fi'
 import { services } from '@/data/services'
+import { basePath } from '@/lib/basePath'
 
 export default function ContactFormSection() {
   const ref = useRef(null)
@@ -72,7 +73,6 @@ export default function ContactFormSection() {
     setErrors({})
 
     try {
-      const basePath = process.env.NODE_ENV === 'production' ? '/Fill_Growth_Marketing' : ''
       
       // Add timeout for faster user feedback (10 seconds max)
       const controller = new AbortController()

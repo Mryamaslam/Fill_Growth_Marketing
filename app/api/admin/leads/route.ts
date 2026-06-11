@@ -18,11 +18,11 @@ export async function GET(request: NextRequest) {
       to: searchParams.get('to') || undefined,
     }
 
-    const leads = getLeads(filters)
+    const leads = await getLeads(filters)
 
     return NextResponse.json({ leads }, { status: 200 })
   } catch (error) {
-    console.error('Error fetching leads from SQLite:', error)
+    console.error('Error fetching leads from Neon:', error)
     return NextResponse.json({ error: 'Failed to fetch leads' }, { status: 500 })
   }
 }

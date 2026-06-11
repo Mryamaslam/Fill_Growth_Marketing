@@ -1,5 +1,4 @@
-import fs from 'fs'
-import path from 'path'
+import { neon } from '@neondatabase/serverless'
 
 export interface LeadInput {
   name: string
@@ -19,46 +18,6 @@ export interface LeadRecord extends LeadInput {
   createdAt: string
 }
 
-const leadsFilePath = path.join(process.cwd(), 'leads.json')
-
-function ensureFile() {
-  if (!fs.existsSync(leadsFilePath)) {
-    fs.writeFileSync(leadsFilePath, '[]', 'utf8')
-  }
-}
-
-function readAllLeads(): LeadRecord[] {
-  ensureFile()
-  try {
-    const raw = fs.readFileSync(leadsFilePath, 'utf8')
-    const data = JSON.parse(raw)
-    if (Array.isArray(data)) {
-      return data as LeadRecord[]
-    }
-    return []
-  } catch {
-    return []
-  }
-}
-
-function writeAllLeads(leads: LeadRecord[]) {
-  fs.writeFileSync(leadsFilePath, JSON.stringify(leads, null, 2), 'utf8')
-}
-
-export function insertLead(lead: LeadInput) {
-  const leads = readAllLeads()
-  const nextId = leads.length ? leads[0].id + 1 : 1
-  const record: LeadRecord = {
-    ...lead,
-    id: nextId,
-    createdAt: new Date().toISOString(),
-    source: lead.source || 'contact',
-    packageInfo: lead.packageInfo ?? null,
-  }
-  leads.unshift(record)
-  writeAllLeads(leads)
-}
-
 export interface LeadFilters {
   search?: string
   country?: string
@@ -67,38 +26,126 @@ export interface LeadFilters {
   to?: string
 }
 
-export function getLeads(filters: LeadFilters = {}) {
-  let leads = readAllLeads()
+const databaseUrl = process.env.DATABASE_URL
+
+function getSql() {
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL is not defined. Please set it in your environment variables.')
+  }
+  return neon(databaseUrl)
+}
+
+let tableReady: Promise<void> | null = null
+
+function ensureTable() {
+  if (!tableReady) {
+    const sql = getSql()
+    tableReady = (async () => {
+      await sql`
+        CREATE TABLE IF NOT EXISTS leads (
+          id SERIAL PRIMARY KEY,
+          name TEXT NOT NULL,
+          email TEXT NOT NULL,
+          phone TEXT,
+          country TEXT,
+          city TEXT,
+          service TEXT,
+          message TEXT NOT NULL,
+          source TEXT DEFAULT 'contact',
+          package_id TEXT,
+          package_info TEXT,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        )
+      `
+    })().catch((err) => {
+      // Reset so a later call can retry table creation.
+      tableReady = null
+      throw err
+    })
+  }
+  return tableReady
+}
+
+export async function insertLead(lead: LeadInput) {
+  const sql = getSql()
+  await ensureTable()
+
+  await sql`
+    INSERT INTO leads (name, email, phone, country, city, service, message, source, package_id, package_info)
+    VALUES (
+      ${lead.name},
+      ${lead.email},
+      ${lead.phone ?? null},
+      ${lead.country ?? null},
+      ${lead.city ?? null},
+      ${lead.service ?? null},
+      ${lead.message},
+      ${lead.source || 'contact'},
+      ${lead.packageId ?? null},
+      ${lead.packageInfo ?? null}
+    )
+  `
+}
+
+export async function getLeads(filters: LeadFilters = {}): Promise<LeadRecord[]> {
+  const sql = getSql()
+  await ensureTable()
+
+  const conditions: string[] = []
+  const values: unknown[] = []
 
   if (filters.search) {
-    const term = filters.search.toLowerCase()
-    leads = leads.filter(
-      (l) =>
-        l.name.toLowerCase().includes(term) ||
-        l.email.toLowerCase().includes(term) ||
-        l.message.toLowerCase().includes(term)
+    values.push(`%${filters.search.toLowerCase()}%`)
+    const idx = values.length
+    conditions.push(
+      `(LOWER(name) LIKE $${idx} OR LOWER(email) LIKE $${idx} OR LOWER(message) LIKE $${idx})`
     )
   }
 
   if (filters.country) {
-    leads = leads.filter((l) => (l.country || '').toLowerCase() === filters.country!.toLowerCase())
+    values.push(filters.country.toLowerCase())
+    conditions.push(`LOWER(country) = $${values.length}`)
   }
 
   if (filters.service) {
-    leads = leads.filter((l) => (l.service || '').toLowerCase().includes(filters.service!.toLowerCase()))
+    values.push(`%${filters.service.toLowerCase()}%`)
+    conditions.push(`LOWER(service) LIKE $${values.length}`)
   }
 
   if (filters.from) {
-    const fromDate = new Date(filters.from)
-    leads = leads.filter((l) => new Date(l.createdAt) >= fromDate)
+    values.push(new Date(filters.from).toISOString())
+    conditions.push(`created_at >= $${values.length}`)
   }
 
   if (filters.to) {
-    const toDate = new Date(filters.to)
-    leads = leads.filter((l) => new Date(l.createdAt) <= toDate)
+    values.push(new Date(filters.to).toISOString())
+    conditions.push(`created_at <= $${values.length}`)
   }
 
-  return leads.slice(0, 200)
+  const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : ''
+  const query = `
+    SELECT id, name, email, phone, country, city, service, message, source,
+           package_id, package_info, created_at
+    FROM leads
+    ${whereClause}
+    ORDER BY created_at DESC
+    LIMIT 200
+  `
+
+  const rows = (await getSql().query(query, values)) as Array<Record<string, unknown>>
+
+  return rows.map((row) => ({
+    id: row.id as number,
+    name: row.name as string,
+    email: row.email as string,
+    phone: (row.phone as string) ?? undefined,
+    country: (row.country as string) ?? undefined,
+    city: (row.city as string) ?? undefined,
+    service: (row.service as string) ?? undefined,
+    message: row.message as string,
+    source: (row.source as string) ?? 'contact',
+    packageId: (row.package_id as string) ?? undefined,
+    packageInfo: (row.package_info as string) ?? null,
+    createdAt: new Date(row.created_at as string).toISOString(),
+  }))
 }
-
-

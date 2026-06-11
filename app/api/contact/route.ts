@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
         body.packageInfo ||
         (packageId ? `Interested in package: ${packageId.toString().toUpperCase()}` : null)
 
-      insertLead({
+      await insertLead({
         name: name.trim(),
         email: email.trim().toLowerCase(),
         phone: phone?.trim(),

@@ -5,6 +5,7 @@ import { useRef, useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { FiMail, FiPhone, FiMapPin, FiCheck } from 'react-icons/fi'
 import { services } from '@/data/services'
+import { basePath } from '@/lib/basePath'
 
 const packageNames: Record<string, string> = {
   basic: 'BASIC Package (Rs. 20k/month)',
@@ -104,7 +105,6 @@ export default function ContactSection() {
     setErrors({})
 
     try {
-      const basePath = process.env.NODE_ENV === 'production' ? '/Fill_Growth_Marketing' : ''
       // Include package info in the submission
       const submissionData = {
         ...formData,

@@ -1,26 +1,22 @@
 /** @type {import('next').NextConfig} */
+const isVercel = process.env.VERCEL === '1'
+const isGitHubPages = process.env.NODE_ENV === 'production' && !isVercel
+
 const nextConfig = {
   reactStrictMode: true,
-  
-  // Enable static export for GitHub Pages
-  output: 'export',
-  
-  // Configure basePath and assetPrefix for GitHub Pages repository
-  // Repository name: Fill_Growth_Marketing
-  // GitHub Pages URL: https://mryamaslam.github.io/Fill_Growth_Marketing/
-  basePath: process.env.NODE_ENV === 'production' ? '/Fill_Growth_Marketing' : '',
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/Fill_Growth_Marketing' : '',
-  
-  // Disable image optimization (required for static export)
+
+  // Static export only for GitHub Pages (Vercel needs server/API routes)
+  ...(isGitHubPages ? { output: 'export' } : {}),
+
+  basePath: isGitHubPages ? '/Fill_Growth_Marketing' : '',
+  assetPrefix: isGitHubPages ? '/Fill_Growth_Marketing' : '',
+
   images: {
     unoptimized: true,
   },
-  
-  // Disable features not supported in static export
-  compress: false, // Compression handled by GitHub Pages
+
+  compress: !isGitHubPages,
   poweredByHeader: false,
-  
-  // Note: Headers, rewrites, and redirects are not supported in static export
 }
 
 module.exports = nextConfig
