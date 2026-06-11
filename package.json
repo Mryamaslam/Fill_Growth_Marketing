@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
+    "@supabase/supabase-js": "^2.108.1",
     "framer-motion": "^10.16.16",
     "mongoose": "^8.0.3",
     "next": "^14.0.4",

@@ -4,7 +4,7 @@ import { motion, useInView } from 'framer-motion'
 import { useRef, useState } from 'react'
 import { FiCheck } from 'react-icons/fi'
 import { services } from '@/data/services'
-import { basePath } from '@/lib/basePath'
+import { submitLead } from '@/lib/supabaseClient'
 
 export default function ContactFormSection() {
   const ref = useRef(null)
@@ -73,26 +73,16 @@ export default function ContactFormSection() {
     setErrors({})
 
     try {
-      
-      // Add timeout for faster user feedback (10 seconds max)
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000)
-      
-      const response = await fetch(`${basePath}/api/contact`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-        signal: controller.signal,
+      await submitLead({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        country: formData.country,
+        city: formData.city,
+        service: formData.service,
+        message: formData.message,
+        source: 'contact',
       })
-
-      clearTimeout(timeoutId)
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit form')
-      }
 
       setSubmitStatus('success')
       setFormData({

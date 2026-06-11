@@ -5,7 +5,7 @@ import { useRef, useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { FiMail, FiPhone, FiMapPin, FiCheck } from 'react-icons/fi'
 import { services } from '@/data/services'
-import { basePath } from '@/lib/basePath'
+import { submitLead } from '@/lib/supabaseClient'
 
 const packageNames: Record<string, string> = {
   basic: 'BASIC Package (Rs. 20k/month)',
@@ -105,31 +105,18 @@ export default function ContactSection() {
     setErrors({})
 
     try {
-      // Include package info in the submission
-      const submissionData = {
-        ...formData,
-        packageInfo: formData.package ? packageNames[formData.package] : null,
-      }
-      
-      // Add timeout for faster user feedback (10 seconds max)
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000)
-      
-      const response = await fetch(`${basePath}/api/contact`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(submissionData),
-        signal: controller.signal,
+      await submitLead({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        country: formData.country,
+        city: formData.city,
+        service: formData.service,
+        message: formData.message,
+        source: 'contact',
+        package_id: formData.package || null,
+        package_info: formData.package ? packageNames[formData.package] : null,
       })
-
-      clearTimeout(timeoutId)
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to submit form')
-      }
 
       setSubmitStatus('success')
       setFormData({ name: '', email: '', phone: '', country: '', city: '', service: '', message: '', package: '' })
