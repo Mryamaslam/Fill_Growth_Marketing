@@ -176,7 +176,7 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-8">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-4 pb-8 pt-28 sm:pt-32">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-gray-200">
