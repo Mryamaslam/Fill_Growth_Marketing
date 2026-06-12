@@ -49,6 +49,27 @@ export async function submitLead(lead: LeadInput) {
   }
 }
 
+export async function signInAdmin(email: string, password: string) {
+  if (!supabase) {
+    throw new Error('Database is not configured yet.')
+  }
+  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+
+export async function signOutAdmin() {
+  if (!supabase) return
+  await supabase.auth.signOut()
+}
+
+export async function getAdminSession() {
+  if (!supabase) return null
+  const { data } = await supabase.auth.getSession()
+  return data.session
+}
+
 export interface LeadRow extends LeadInput {
   id: number
   created_at: string

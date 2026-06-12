@@ -1,7 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { fetchLeads as fetchLeadsFromDb, type LeadRow } from '@/lib/supabaseClient'
+import {
+  fetchLeads as fetchLeadsFromDb,
+  signInAdmin,
+  signOutAdmin,
+  getAdminSession,
+  type LeadRow,
+} from '@/lib/supabaseClient'
 
 interface Lead {
   id: number
@@ -17,10 +23,6 @@ interface Lead {
   packageId?: string
   packageInfo?: string
 }
-
-const ADMIN_USERNAME = process.env.NEXT_PUBLIC_ADMIN_USERNAME || 'admin'
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || '234'
-const AUTH_STORAGE_KEY = 'fgm_admin_authed'
 
 function mapRow(row: LeadRow): Lead {
   return {
@@ -41,10 +43,11 @@ function mapRow(row: LeadRow): Lead {
 
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [checkingSession, setCheckingSession] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
   const [leads, setLeads] = useState<Lead[]>([])
@@ -68,9 +71,9 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && sessionStorage.getItem(AUTH_STORAGE_KEY) === 'true') {
-      setIsLoggedIn(true)
-    }
+    getAdminSession()
+      .then((session) => setIsLoggedIn(Boolean(session)))
+      .finally(() => setCheckingSession(false))
   }, [])
 
   useEffect(() => {
@@ -83,18 +86,18 @@ export default function AdminPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      sessionStorage.setItem(AUTH_STORAGE_KEY, 'true')
-      setUsername('')
+    try {
+      await signInAdmin(email, password)
+      setEmail('')
       setPassword('')
       setIsLoggedIn(true)
-    } else {
-      setError('Invalid username or password')
+    } catch (err: any) {
+      setError(err.message || 'Invalid email or password')
     }
   }
 
-  const handleLogout = () => {
-    sessionStorage.removeItem(AUTH_STORAGE_KEY)
+  const handleLogout = async () => {
+    await signOutAdmin()
     setIsLoggedIn(false)
     setLeads([])
   }
@@ -109,6 +112,14 @@ export default function AdminPage() {
   const handleApplyFilters = (e: React.FormEvent) => {
     e.preventDefault()
     loadLeads()
+  }
+
+  if (checkingSession) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
+      </main>
+    )
   }
 
   if (!isLoggedIn) {
@@ -126,13 +137,13 @@ export default function AdminPage() {
           </div>
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Username</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
               <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
-                placeholder="Enter username"
+                placeholder="Enter admin email"
                 required
               />
             </div>
