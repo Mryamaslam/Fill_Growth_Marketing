@@ -48,3 +48,41 @@ export async function submitLead(lead: LeadInput) {
     throw new Error(error.message)
   }
 }
+
+export interface LeadRow extends LeadInput {
+  id: number
+  created_at: string
+}
+
+export interface LeadQueryFilters {
+  search?: string
+  country?: string
+  service?: string
+}
+
+export async function fetchLeads(filters: LeadQueryFilters = {}): Promise<LeadRow[]> {
+  if (!supabase) {
+    throw new Error('Database is not configured yet.')
+  }
+
+  let query = supabase.from('leads').select('*').order('created_at', { ascending: false }).limit(500)
+
+  if (filters.country) {
+    query = query.ilike('country', `%${filters.country}%`)
+  }
+  if (filters.service) {
+    query = query.ilike('service', `%${filters.service}%`)
+  }
+  if (filters.search) {
+    const term = `%${filters.search}%`
+    query = query.or(`name.ilike.${term},email.ilike.${term},message.ilike.${term}`)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return (data || []) as LeadRow[]
+}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { fetchLeads as fetchLeadsFromDb, type LeadRow } from '@/lib/supabaseClient'
 
 interface Lead {
   id: number
@@ -17,9 +18,30 @@ interface Lead {
   packageInfo?: string
 }
 
+const ADMIN_USERNAME = process.env.NEXT_PUBLIC_ADMIN_USERNAME || 'admin'
+const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || '234'
+const AUTH_STORAGE_KEY = 'fgm_admin_authed'
+
+function mapRow(row: LeadRow): Lead {
+  return {
+    id: row.id,
+    createdAt: row.created_at,
+    name: row.name,
+    email: row.email,
+    phone: row.phone || undefined,
+    country: row.country || undefined,
+    city: row.city || undefined,
+    service: row.service || undefined,
+    message: row.message,
+    source: row.source || undefined,
+    packageId: row.package_id || undefined,
+    packageInfo: row.package_info || undefined,
+  }
+}
+
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const [username, setUsername] = useState('')
@@ -32,34 +54,12 @@ export default function AdminPage() {
     service: '',
   })
 
-  const fetchLeads = async () => {
+  const loadLeads = async () => {
     try {
       setLoading(true)
       setError(null)
-
-      const params = new URLSearchParams()
-      if (filters.search) params.set('search', filters.search)
-      if (filters.country) params.set('country', filters.country)
-      if (filters.service) params.set('service', filters.service)
-
-      const res = await fetch(`/api/admin/leads?${params.toString()}`, {
-        credentials: 'include',
-      })
-
-      if (res.status === 401) {
-        setIsLoggedIn(false)
-        setLeads([])
-        setLoading(false)
-        return
-      }
-
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to fetch leads')
-      }
-
-      setLeads(data.leads || [])
-      setIsLoggedIn(true)
+      const rows = await fetchLeadsFromDb(filters)
+      setLeads(rows.map(mapRow))
     } catch (err: any) {
       setError(err.message || 'Failed to fetch leads')
     } finally {
@@ -68,43 +68,35 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    fetchLeads()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (typeof window !== 'undefined' && sessionStorage.getItem(AUTH_STORAGE_KEY) === 'true') {
+      setIsLoggedIn(true)
+    }
   }, [])
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      loadLeads()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    try {
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        throw new Error(data.error || 'Login failed')
-      }
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+      sessionStorage.setItem(AUTH_STORAGE_KEY, 'true')
       setUsername('')
       setPassword('')
-      await fetchLeads()
-    } catch (err: any) {
-      setError(err.message || 'Login failed')
+      setIsLoggedIn(true)
+    } else {
+      setError('Invalid username or password')
     }
   }
 
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ logout: true }),
-      })
-      setIsLoggedIn(false)
-      setLeads([])
-    } catch {
-      // ignore
-    }
+  const handleLogout = () => {
+    sessionStorage.removeItem(AUTH_STORAGE_KEY)
+    setIsLoggedIn(false)
+    setLeads([])
   }
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -116,7 +108,7 @@ export default function AdminPage() {
 
   const handleApplyFilters = (e: React.FormEvent) => {
     e.preventDefault()
-    fetchLeads()
+    loadLeads()
   }
 
   if (!isLoggedIn) {
